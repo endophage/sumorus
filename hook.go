@@ -1,26 +1,26 @@
 package sumorus
 
 import (
-	"github.com/Sirupsen/logrus"
-	"time"
-	"strings"
-	"encoding/json"
-	"net/http"
 	"bytes"
+	"encoding/json"
+	"github.com/sirupsen/logrus"
+	"net/http"
+	"strings"
+	"time"
 )
 
 type SumoLogicHook struct {
-	endPointUrl	   	string
-	tags			[]string
-	host			string
-	levels 			[]logrus.Level
+	endPointUrl string
+	tags        []string
+	host        string
+	levels      []logrus.Level
 }
 
 type SumoLogicMesssage struct {
-	Tags			[]string		`json:"tags"`
-	Host			string			`json:"host"`
-	Level			string			`json:"level"`
-	Data			interface{}		`json:"data"`
+	Tags  []string    `json:"tags"`
+	Host  string      `json:"host"`
+	Level string      `json:"level"`
+	Data  interface{} `json:"data"`
 }
 
 func NewSumoLogicHook(endPointUrl string, host string, level logrus.Level, tags ...string) *SumoLogicHook {
@@ -40,14 +40,14 @@ func NewSumoLogicHook(endPointUrl string, host string, level logrus.Level, tags 
 
 	var tagList []string
 	for _, tag := range tags {
-		tagList = append(tagList,tag)
+		tagList = append(tagList, tag)
 	}
 
 	return &SumoLogicHook{
-		host: host,
-		tags: tagList,
+		host:        host,
+		tags:        tagList,
 		endPointUrl: endPointUrl,
-		levels: levels,
+		levels:      levels,
 	}
 }
 
@@ -56,10 +56,10 @@ func (hook *SumoLogicHook) Fire(entry *logrus.Entry) error {
 	var data interface{}
 	json.Unmarshal([]byte(dataStr), &data)
 	message := SumoLogicMesssage{
-		Tags: hook.tags,
-		Host: hook.host,
+		Tags:  hook.tags,
+		Host:  hook.host,
 		Level: strings.ToUpper(entry.Level.String()),
-		Data: data,
+		Data:  data,
 	}
 	payload, _ := json.Marshal(message)
 	req, err := http.NewRequest(
@@ -73,10 +73,10 @@ func (hook *SumoLogicHook) Fire(entry *logrus.Entry) error {
 
 	req.Header.Set("Content-Type", "application/json")
 
-	client := &http.Client{ Timeout: time.Duration(30 * time.Second) }
+	client := &http.Client{Timeout: time.Duration(30 * time.Second)}
 	resp, err := client.Do(req)
 
-	if (err != nil) {
+	if err != nil {
 		return err
 	}
 
